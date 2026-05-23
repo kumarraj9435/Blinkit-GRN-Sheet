@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blinkit GRN Sheet Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-box-open"></i>
+                <span>Blinkit GRN</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="upload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Upload Files</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="master-sheet">
+                    <i class="fas fa-table"></i>
+                    <span>Master Sheet</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="comparison">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>R.O. vs GRN</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn btn-export" onclick="exportAllData()">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue"><i class="fas fa-file-alt"></i></div>
+                        <div class="stat-info">
+                            <h3 id="total-entries">0</h3>
+                            <p>Total Entries</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green"><i class="fas fa-truck"></i></div>
+                        <div class="stat-info">
+                            <h3 id="total-ro">0</h3>
+                            <p>R.O. Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-orange"><i class="fas fa-clipboard-check"></i></div>
+                        <div class="stat-info">
+                            <h3 id="total-grn">0</h3>
+                            <p>GRN Receipts</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-red"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="total-mismatch">0</h3>
+                            <p>Mismatches</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Upload Activity (Last 7 Days)</h3>
+                        <canvas id="uploadChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>R.O. vs GRN Comparison</h3>
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                </div>
+                <div class="recent-activity">
+                    <h3>Recent Uploads</h3>
+                    <div id="recent-uploads-list" class="activity-list">
+                        <p class="empty-state">No uploads yet. Start by uploading files.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Tab -->
+            <section id="upload" class="tab-content">
+                <div class="upload-area">
+                    <div class="upload-box" id="dropZone">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h2>Drag & Drop Files Here</h2>
+                        <p>or click to browse</p>
+                        <p class="file-types">Supports: PDF, JPEG/PNG, Excel (.xlsx, .xls, .csv)</p>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.csv">
+                    </div>
+                    <div class="upload-options">
+                        <label class="option-label">
+                            <span>File Type:</span>
+                            <select id="fileType">
+                                <option value="auto">Auto Detect</option>
+                                <option value="ro">R.O. (Release Order)</option>
+                                <option value="grn">GRN (Goods Receipt Note)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="fileList" class="file-list"></div>
+                    <button class="btn btn-primary btn-upload" id="processBtn" disabled>
+                        <i class="fas fa-cog"></i> Process Files
+                    </button>
+                    <div id="progressContainer" class="progress-container" style="display:none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="progressText">Processing...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Master Sheet Tab -->
+            <section id="master-sheet" class="tab-content">
+                <div class="sheet-controls">
+                    <input type="text" id="searchInput" placeholder="Search entries..." class="search-input">
+                    <select id="filterType" class="filter-select">
+                        <option value="all">All Types</option>
+                        <option value="ro">R.O. Only</option>
+                        <option value="grn">GRN Only</option>
+                    </select>
+                    <button class="btn btn-sm" onclick="exportMasterSheet()">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="masterTable">
+                        <thead>
+                            <tr>
+                                <th>Unique ID</th>
+                                <th>Type</th>
+                                <th>R.O. Number</th>
+                                <th>Product UPC</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Upload Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="masterTableBody">
+                        </tbody>
+                    </table>
+                    <p id="noDataMsg" class="empty-state">No data available. Upload files to get started.</p>
+                </div>
+            </section>
+
+            <!-- Comparison Tab -->
+            <section id="comparison" class="tab-content">
+                <div class="comparison-header">
+                    <h3>R.O. vs GRN Comparison</h3>
+                    <p>Showing differences between Release Orders and Goods Receipt Notes (Unique ID = R.O. Number + Product UPC Code)</p>
+                    <div class="comparison-legend">
+                        <span class="legend-item match"><i class="fas fa-check-circle"></i> Matched</span>
+                        <span class="legend-item mismatch"><i class="fas fa-times-circle"></i> Mismatch</span>
+                        <span class="legend-item missing"><i class="fas fa-question-circle"></i> Missing</span>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="comparisonTable">
+                        <thead>
+                            <tr>
+                                <th>Unique ID</th>
+                                <th>R.O. Number</th>
+                                <th>Product UPC</th>
+                                <th>Product Name</th>
+                                <th>R.O. Qty</th>
+                                <th>GRN Qty</th>
+                                <th>Qty Diff</th>
+                                <th>R.O. Amount</th>
+                                <th>GRN Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                        </tbody>
+                    </table>
+                    <p id="noComparisonMsg" class="empty-state">No comparison data available. Upload both R.O. and GRN files.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
