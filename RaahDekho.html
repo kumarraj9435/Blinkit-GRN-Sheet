@@ -290,7 +290,7 @@ function showResults(t){
     else{html+='<div class="card" style="text-align:center;color:var(--muted)">⚠️ Bahut kam distance – Auto/Bike use karo</div>';}
   } else if(t==='bus'){
     html+=mkCard('🚌','Bus','bb',t,ds,d,'<div class="extra-box eb">🚌 Bus stop se board<br>💳 Smart card/cash</div>','');
-    html+='<div style="margin-top:10px"><a href="https://www.google.com/maps/dir/?api=1&origin='+fC[0]+','+fC[1]+'&destination='+tC[0]+','+tC[1]+'&travelmode=transit&transit_mode=bus" target="_blank" rel="noopener" onclick="window.open(this.href,\'_blank\');return false;" style="display:block;text-align:center;padding:13px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:12px;color:#000;font-weight:800;font-size:14px;text-decoration:none;font-family:inherit">🚌 Google Maps mein Bus No. & Timing Dekho →</a><p style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px">Naya tab mein khulega - back button se wapas aa jaoge</p></div>';
+    html+='<div style="margin-top:10px"><button onclick="openBusMap()" style="display:block;width:100%;text-align:center;padding:13px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#000;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit">🚌 Bus No. & Timing Dekho (Google Maps)</button><p style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px">Popup mein khulega - X dabao wapas aane ke liye</p></div>';
   } else if(t==='bike'){
     var fl=fuelCalc(d,'bike');
     html+=mkCard('🏍️','Bike Taxi','bk',t,ds,d,'<div class="extra-box ek">🏍️ <b>Rapido/Uber Moto</b><br>🪖 Helmet mandatory<br>⚡ Fastest in traffic<br>💨 Avg: '+avgSpeed(t)+' km/h</div>','<div class="fuel-box"><div><div class="fuel-lbl">⛽ Petrol (own bike)</div><div class="fuel-note">~'+fl.litres+'L @ '+fl.mileage+' km/L</div></div><div class="fuel-val">₹'+fl.cost+'</div></div>');
@@ -469,6 +469,20 @@ function fetchBusRoutes(from,to){
     clearTimeout(timeout);
     busDiv.innerHTML='<div style="text-align:center;color:var(--muted);padding:12px;font-size:12px">ℹ️ Nearby stops load nahi hue<br><b style="color:var(--bus)">Upar Google Maps button se exact bus info lo!</b></div>';
   });
+}
+
+// ========== BUS MAP POPUP ==========
+function openBusMap(){
+  var url='https://www.google.com/maps/dir/?api=1&origin='+fC[0]+','+fC[1]+'&destination='+tC[0]+','+tC[1]+'&travelmode=transit&transit_mode=bus';
+  var overlay=document.createElement('div');
+  overlay.id='busMapOverlay';
+  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#000;display:flex;flex-direction:column';
+  overlay.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1a1a2e;border-bottom:1px solid #333"><span style="color:#f59e0b;font-weight:800;font-size:14px">🚌 Bus Routes - Google Maps</span><button onclick="closeBusMap()" style="background:#dc3545;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit">✕ Band Karo</button></div><iframe src="'+url+'" style="flex:1;border:none;width:100%;height:100%"></iframe>';
+  document.body.appendChild(overlay);
+}
+function closeBusMap(){
+  var ov=document.getElementById('busMapOverlay');
+  if(ov)ov.remove();
 }
 
 document.getElementById('shareBtn').onclick=function(){
