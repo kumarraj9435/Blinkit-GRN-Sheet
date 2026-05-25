@@ -108,6 +108,12 @@ header small{display:block;font-size:10px;color:var(--muted);font-weight:400}
       <div class="stat-card red"><h3 id="sLowStock">0</h3><p>Low Stock (&lt;5)</p></div>
       <div class="stat-card purple"><h3 id="sTotalOrders">0</h3><p>Total Orders</p></div>
     </div>
+    <div class="section-title">Export Data to Excel</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button onclick="exportStockExcel()" style="flex:1;padding:10px;background:#065f46;border:1px solid #10b981;border-radius:8px;color:#6ee7b7;font-weight:700;font-size:11px;cursor:pointer;font-family:inherit"><i class="fas fa-file-excel"></i> Stock Excel</button>
+      <button onclick="exportOrdersExcel()" style="flex:1;padding:10px;background:#1e1b4b;border:1px solid #8b5cf6;border-radius:8px;color:#c4b5fd;font-weight:700;font-size:11px;cursor:pointer;font-family:inherit"><i class="fas fa-file-excel"></i> Orders Excel</button>
+      <button onclick="exportHistoryExcel()" style="flex:1;padding:10px;background:#92400e;border:1px solid #f59e0b;border-radius:8px;color:#fcd34d;font-weight:700;font-size:11px;cursor:pointer;font-family:inherit"><i class="fas fa-file-excel"></i> History Excel</button>
+    </div>
     <div class="section-title">Recent Stock</div>
     <div id="dashStock"></div>
   </div>
@@ -409,6 +415,50 @@ function deleteItem(idx){
 function saveData(){
   localStorage.setItem('sm_stock',JSON.stringify(stock));
   localStorage.setItem('sm_orders',JSON.stringify(orders));
+}
+
+// ========== EXPORT TO EXCEL ==========
+function exportStockExcel(){
+  if(stock.length===0){alert('Koi stock nahi hai export karne ke liye!');return;}
+  var csv = 'Product Name,Category,Quantity,Price,Total Value,Added Date,Last Update\n';
+  for(var i=0;i<stock.length;i++){
+    var s=stock[i];
+    csv += '"'+s.name+'","'+s.category+'",'+s.qty+','+s.price+','+(s.qty*s.price)+',"'+new Date(s.addedDate).toLocaleDateString()+'","'+new Date(s.lastUpdate).toLocaleDateString()+'"\n';
+  }
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Stock_Data_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+  alert('✅ Excel file download ho gayi!');
+}
+
+function exportOrdersExcel(){
+  if(orders.length===0){alert('Koi order nahi hai!');return;}
+  var csv = 'Customer,Item,Quantity,Total,Date,Status\n';
+  for(var i=0;i<orders.length;i++){
+    var o=orders[i];
+    csv += '"'+o.customer+'","'+o.item+'",'+o.qty+','+o.total+',"'+new Date(o.date).toLocaleDateString()+'","'+o.status+'"\n';
+  }
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Orders_Data_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+  alert('✅ Orders Excel download ho gayi!');
+}
+
+function exportHistoryExcel(){
+  var csv = 'Product,Type,Quantity,Date,Reason\n';
+  var hasData = false;
+  for(var i=0;i<stock.length;i++){
+    var s=stock[i];
+    if(s.history){
+      for(var j=0;j<s.history.length;j++){
+        var h=s.history[j];
+        csv += '"'+s.name+'","'+(h.type==='in'?'STOCK IN':'STOCK OUT')+'",'+h.qty+',"'+new Date(h.date).toLocaleDateString()+'","'+(h.reason||'')+'"\n';
+        hasData=true;
+      }
+    }
+  }
+  if(!hasData){alert('Koi history nahi hai!');return;}
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Stock_History_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+  alert('✅ History Excel download ho gayi!');
 }
 
 // ========== INIT ==========
