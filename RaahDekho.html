@@ -290,6 +290,8 @@ function showResults(t){
     else{html+='<div class="card" style="text-align:center;color:var(--muted)">⚠️ Bahut kam distance – Auto/Bike use karo</div>';}
   } else if(t==='bus'){
     html+=mkCard('🚌','Bus','bb',t,ds,d,'<div class="extra-box eb">🚌 Bus stop se board<br>💳 Smart card/cash</div>','');
+    html+='<div id="busInfo" class="card" style="margin-top:10px"><div class="loading"><div class="spin"></div>Bus routes dhund rahe hain...</div></div>';
+    fetchBusRoutes(fC,tC);
   } else if(t==='bike'){
     var fl=fuelCalc(d,'bike');
     html+=mkCard('🏍️','Bike Taxi','bk',t,ds,d,'<div class="extra-box ek">🏍️ <b>Rapido/Uber Moto</b><br>🪖 Helmet mandatory<br>⚡ Fastest in traffic<br>💨 Avg: '+avgSpeed(t)+' km/h</div>','<div class="fuel-box"><div><div class="fuel-lbl">⛽ Petrol (own bike)</div><div class="fuel-note">~'+fl.litres+'L @ '+fl.mileage+' km/L</div></div><div class="fuel-val">₹'+fl.cost+'</div></div>');
@@ -376,6 +378,94 @@ function stopNav(){
 }
 
 function haversine(a,b){var R=6371,dl=(b[0]-a[0])*Math.PI/180,dn=(b[1]-a[1])*Math.PI/180;var x=Math.sin(dl/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dn/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+
+// ========== BUS ROUTES FINDER ==========
+function fetchBusRoutes(from,to){
+  var fromQ='[out:json][timeout:15];(node["highway"="bus_stop"](around:800,'+from[0]+','+from[1]+');node["public_transport"="platform"]["bus"="yes"](around:800,'+from[0]+','+from[1]+'););out body;';
+  var toQ='[out:json][timeout:15];(node["highway"="bus_stop"](around:800,'+to[0]+','+to[1]+');node["public_transport"="platform"]["bus"="yes"](around:800,'+to[0]+','+to[1]+'););out body;';
+  var busDiv=document.getElementById('busInfo');
+  
+  Promise.all([
+    fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(fromQ)}).then(function(r){return r.json();}),
+    fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(toQ)}).then(function(r){return r.json();})
+  ]).then(function(results){
+    var fromStops=results[0].elements||[];
+    var toStops=results[1].elements||[];
+    
+    if(fromStops.length===0&&toStops.length===0){
+      busDiv.innerHTML='<div style="text-align:center;color:var(--muted);padding:12px;font-size:12px">⚠️ Is area mein bus stop data available nahi hai<br>Google Maps pe "Bus routes" search karein</div>';
+      return;
+    }
+    
+    var html='<div class="card-title" style="margin-bottom:10px">🚏 Nearby Bus Stops & Routes</div>';
+    
+    // From stops
+    if(fromStops.length>0){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px">📍 BOARDING STOPS (Start ke paas):</div>';
+      var shown=0;
+      for(var i=0;i<fromStops.length&&shown<4;i++){
+        var s=fromStops[i];
+        var name=s.tags?s.tags.name||s.tags['name:en']||s.tags['name:hi']||'Bus Stop':'Bus Stop';
+        var routes=s.tags?(s.tags.route_ref||s.tags.ref||''):'';
+        var dist=haversine(from,[s.lat,s.lon]);
+        if(name==='Bus Stop'&&!routes)continue;
+        html+='<div style="background:#1c1a09;border:1px solid #3d3200;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:11px">';
+        html+='<div style="font-weight:700;color:#fcd34d">🚏 '+name+'</div>';
+        html+='<div style="color:var(--muted);margin-top:2px">📏 '+Math.round(dist*1000)+'m door</div>';
+        if(routes){html+='<div style="color:#f59e0b;margin-top:3px;font-weight:600">🚌 Bus No: <span style="background:#92400e;padding:2px 6px;border-radius:4px;color:#fcd34d">'+routes.replace(/;/g,' | ')+'</span></div>';}
+        html+='</div>';
+        shown++;
+      }
+      if(shown===0)html+='<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Nearby stop: ~800m radius mein search kiya</div>';
+    }
+    
+    // To stops
+    if(toStops.length>0){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--accent2);margin:10px 0 6px">🔴 UTARNE KE STOPS (Destination ke paas):</div>';
+      var shown2=0;
+      for(var j=0;j<toStops.length&&shown2<4;j++){
+        var s2=toStops[j];
+        var name2=s2.tags?s2.tags.name||s2.tags['name:en']||s2.tags['name:hi']||'Bus Stop':'Bus Stop';
+        var routes2=s2.tags?(s2.tags.route_ref||s2.tags.ref||''):'';
+        var dist2=haversine(to,[s2.lat,s2.lon]);
+        if(name2==='Bus Stop'&&!routes2)continue;
+        html+='<div style="background:#0a1f17;border:1px solid #065f46;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:11px">';
+        html+='<div style="font-weight:700;color:#6ee7b7">🚏 '+name2+'</div>';
+        html+='<div style="color:var(--muted);margin-top:2px">📏 '+Math.round(dist2*1000)+'m door</div>';
+        if(routes2){html+='<div style="color:#10b981;margin-top:3px;font-weight:600">🚌 Bus No: <span style="background:#065f46;padding:2px 6px;border-radius:4px;color:#6ee7b7">'+routes2.replace(/;/g,' | ')+'</span></div>';}
+        html+='</div>';
+        shown2++;
+      }
+    }
+    
+    // Find common buses
+    var fromBuses={},toBuses={},commonBuses=[];
+    for(var a=0;a<fromStops.length;a++){
+      var r1=fromStops[a].tags?(fromStops[a].tags.route_ref||fromStops[a].tags.ref||''):'';
+      if(r1){r1.split(/[;,|]/).forEach(function(b){fromBuses[b.trim()]=fromStops[a].tags.name||'Stop';});}
+    }
+    for(var b2=0;b2<toStops.length;b2++){
+      var r2=toStops[b2].tags?(toStops[b2].tags.route_ref||toStops[b2].tags.ref||''):'';
+      if(r2){r2.split(/[;,|]/).forEach(function(b){if(fromBuses[b.trim()])commonBuses.push(b.trim());});}
+    }
+    
+    if(commonBuses.length>0){
+      var unique=[];
+      for(var u=0;u<commonBuses.length;u++){if(unique.indexOf(commonBuses[u])===-1)unique.push(commonBuses[u]);}
+      html+='<div style="margin-top:12px;background:linear-gradient(135deg,#1a3d1a,#0a2a0a);border:1px solid #28a745;border-radius:10px;padding:10px 12px">';
+      html+='<div style="font-size:12px;font-weight:800;color:#28a745;margin-bottom:4px">✅ DIRECT BUS AVAILABLE!</div>';
+      html+='<div style="font-size:13px;font-weight:700;color:#6ee7b7">🚌 Bus No: '+unique.join(', ')+'</div>';
+      html+='<div style="font-size:10px;color:var(--muted);margin-top:4px">Ye bus dono jagah se guzarti hai - seedha pahuncha degi!</div>';
+      html+='</div>';
+    } else {
+      html+='<div style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center;padding:8px">ℹ️ Direct bus nahi mili - 1 change lagega ya alag bus leni hogi<br>Upar ke stops pe jaake poochh sakte ho</div>';
+    }
+    
+    busDiv.innerHTML=html;
+  }).catch(function(e){
+    busDiv.innerHTML='<div style="text-align:center;color:var(--muted);padding:12px;font-size:12px">⚠️ Bus data load nahi hua<br><small>Internet check karein ya thodi der baad try karein</small></div>';
+  });
+}
 
 document.getElementById('shareBtn').onclick=function(){
   var fv=document.getElementById('fromInput').value,tv=document.getElementById('toInput').value;
