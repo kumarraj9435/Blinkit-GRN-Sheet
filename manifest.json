@@ -1,0 +1,28 @@
+{
+  "name": "RaahDekho - Navigation by Raj",
+  "short_name": "RaahDekho",
+  "description": "Free Live Navigation App - Metro, Bus, Auto, Bike, Car with Petrol Calculator",
+  "start_url": "/Blinkit-GRN-Sheet/RaahDekho.html",
+  "display": "standalone",
+  "background_color": "#0a0f1e",
+  "theme_color": "#00e5ff",
+  "orientation": "portrait",
+  "scope": "/Blinkit-GRN-Sheet/",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["navigation", "maps", "travel"],
+  "lang": "hi",
+  "dir": "ltr"
+}
