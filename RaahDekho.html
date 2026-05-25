@@ -290,9 +290,7 @@ function showResults(t){
     else{html+='<div class="card" style="text-align:center;color:var(--muted)">⚠️ Bahut kam distance – Auto/Bike use karo</div>';}
   } else if(t==='bus'){
     html+=mkCard('🚌','Bus','bb',t,ds,d,'<div class="extra-box eb">🚌 Bus stop se board<br>💳 Smart card/cash</div>','');
-    html+='<div id="busInfo" class="card" style="margin-top:10px"><div class="loading"><div class="spin"></div>Bus stops dhund rahe hain...</div></div>';
     html+='<div style="margin-top:10px"><a href="https://www.google.com/maps/dir/?api=1&origin='+fC[0]+','+fC[1]+'&destination='+tC[0]+','+tC[1]+'&travelmode=transit&transit_mode=bus" target="_blank" style="display:block;text-align:center;padding:13px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:12px;color:#000;font-weight:800;font-size:14px;text-decoration:none;font-family:inherit">🚌 Google Maps mein Bus No. & Timing Dekho →</a><p style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px">Exact DTC/Cluster bus number, timing, kahan se leni hai - sab milega</p></div>';
-    fetchBusRoutes(fC,tC);
   } else if(t==='bike'){
     var fl=fuelCalc(d,'bike');
     html+=mkCard('🏍️','Bike Taxi','bk',t,ds,d,'<div class="extra-box ek">🏍️ <b>Rapido/Uber Moto</b><br>🪖 Helmet mandatory<br>⚡ Fastest in traffic<br>💨 Avg: '+avgSpeed(t)+' km/h</div>','<div class="fuel-box"><div><div class="fuel-lbl">⛽ Petrol (own bike)</div><div class="fuel-note">~'+fl.litres+'L @ '+fl.mileage+' km/L</div></div><div class="fuel-val">₹'+fl.cost+'</div></div>');
