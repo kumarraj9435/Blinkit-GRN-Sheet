@@ -4,7 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>RaahDekho by Raj</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00e5ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RaahDekho">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(function(){console.log('SW registered');});}
+</script>
 <style>
 :root{--bg:#0a0f1e;--card:#111827;--card2:#1a2234;--accent:#00e5ff;--accent2:#ff6b35;--green:#00ff9d;--purple:#a855f7;--text:#e2e8f0;--muted:#64748b;--border:#1e2d45;--metro:#6366f1;--bus:#f59e0b;--auto:#10b981;--bike:#ec4899;--car:#3b82f6}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
