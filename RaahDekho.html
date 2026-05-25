@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>RaahDekho by Raj</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0f1e;--card:#111827;--card2:#1a2234;--accent:#00e5ff;--accent2:#ff6b35;--green:#00ff9d;--purple:#a855f7;--text:#e2e8f0;--muted:#64748b;--border:#1e2d45;--metro:#6366f1;--bus:#f59e0b;--auto:#10b981;--bike:#ec4899}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Baloo 2',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.app{display:flex;flex-direction:column;min-height:100vh}
+header{background:linear-gradient(135deg,#0d1b2a,#1a1035);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:999}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:20px;font-weight:800}.logo-text span{color:var(--accent)}
+.logo-sub{font-size:10px;color:var(--muted)}
+.map-wrap{width:100%;height:260px;position:relative;background:#050a15;transition:height .3s ease}
+.map-wrap.big{height:400px}
+#map{width:100%;height:100%}
+.map-btns{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:500}
+.map-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);cursor:pointer;font-size:15px;box-shadow:0 2px 8px #0005}
+.content{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.loc-box{background:var(--card2);border-radius:14px;border:1px solid var(--border);overflow:visible}
+.loc-row{display:flex;align-items:center;gap:10px;padding:12px 14px;position:relative}
+.loc-row+.loc-row{border-top:1px solid var(--border)}
+.loc-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.dot-g{background:var(--green);box-shadow:0 0 8px var(--green)}
+.dot-r{background:var(--accent2);box-shadow:0 0 8px var(--accent2)}
+.loc-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:15px;font-family:inherit}
+.loc-input::placeholder{color:var(--muted)}
+.ic-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:2px}
+.sugg{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#1e2a3a;border:1px solid var(--border);border-radius:10px;z-index:9999;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px #000a}
+.sugg-item{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px}
+.sugg-item:last-child{border:none}
+.sugg-item:active{background:var(--border)}
+.btn-row{display:flex;gap:8px}
+.btn-gps{padding:13px 15px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--accent);cursor:pointer;font-size:18px}
+.btn-search{flex:1;padding:13px;background:linear-gradient(135deg,var(--accent),#0099cc);border:none;border-radius:12px;color:#000;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;box-shadow:0 4px 15px #00e5ff30}
+.btn-search:active{opacity:.8}
+
+.tabs{display:flex;gap:6px}
+.tab{flex:1;padding:10px 4px;background:var(--card2);border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .2s}
+.tab span{font-size:18px}
+.tab.am{border-color:var(--metro);background:#1e1b4b;color:var(--metro)}
+.tab.ab{border-color:var(--bus);background:#1c1a09;color:var(--bus)}
+.tab.aa{border-color:var(--auto);background:#0a1f17;color:var(--auto)}
+.tab.ak{border-color:var(--bike);background:#1f0a1e;color:var(--bike)}
+.card{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px;animation:si .3s ease}
+@keyframes si{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.card-title{font-weight:800;font-size:15px}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.bm{background:#3730a3;color:#a5b4fc}.bb{background:#92400e;color:#fcd34d}.ba{background:#065f46;color:#6ee7b7}.bk{background:#831843;color:#f9a8d4}
+.meta{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.meta b{color:var(--text)}
+.fare-box{background:linear-gradient(135deg,#1e3a2f,#0a2018);border:1px solid #065f46;border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.fare-lbl{font-size:11px;color:#6ee7b7}.fare-note{font-size:10px;color:#4ade80;margin-top:2px}
+.fare-val{font-size:20px;font-weight:800;color:var(--green)}
+.extra-box{margin-top:8px;padding:9px 12px;border-radius:9px;font-size:12px;line-height:1.6}
+.em{background:#1e1b4b;color:#a5b4fc}.eb{background:#1c1a09;color:#fcd34d}.ea{background:#0a1f17;color:#6ee7b7}.ek{background:#1f0a1e;color:#f9a8d4}
+.steps-btn{margin-top:10px;font-size:12px;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:4px}
+.steps{margin-top:8px}
+.step{display:flex;gap:8px;margin-bottom:7px;font-size:12px;color:var(--muted)}
+.sn{min-width:20px;height:20px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--accent);flex-shrink:0}
+.hidden{display:none!important}
+.share-btn{width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:12px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+.status{padding:10px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px;background:var(--card)}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:p 2s infinite;flex-shrink:0}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+.loading{display:flex;align-items:center;gap:10px;padding:20px;color:var(--muted);font-size:13px}
+.spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{padding:24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+.empty-i{font-size:36px;margin-bottom:8px}
+.info{padding:12px 14px;background:linear-gradient(135deg,#0a1628,#0d1f35);border:1px solid #1e3a5f;border-radius:12px;font-size:12px;color:#93c5fd;line-height:1.6}
+.info b{color:var(--accent)}
+.map-err{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:13px;gap:8px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo-icon">🗺️</div>
+    <div>
+      <div class="logo-text">Raah<span>Dekho</span></div><div style="font-size:10px;color:#a855f7;font-weight:600;letter-spacing:.5px">by Raj</div>
+      <div class="logo-sub">Live Navigation • Free Forever • by Raj</div>
+    </div>
+  </header>
+  <div class="map-wrap" id="mapWrap">
+    <div id="map"><div class="map-err" id="mapErr" style="display:none"><span style="font-size:32px">🌐</span>Map load ho raha hai...<br>Internet check karein</div></div>
+    <div class="map-btns">
+      <button class="map-btn" id="btnCenter" title="My Location">📍</button>
+      <button class="map-btn" id="btnFit" title="Fit Route">🗺️</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="loc-box">
+      <div class="loc-row" id="fromRow">
+        <div class="loc-dot dot-g"></div>
+        <input class="loc-input" id="fromInput" placeholder="Aapki location..." autocomplete="off" inputmode="search">
+        <button class="ic-btn" id="gpsBtn">📡</button>
+        <div class="sugg hidden" id="fromSug"></div>
+      </div>
+      <div class="loc-row" id="toRow">
+        <div class="loc-dot dot-r"></div>
+        <input class="loc-input" id="toInput" placeholder="Kahan jaana hai?" autocomplete="off" inputmode="search">
+        <button class="ic-btn" id="swapBtn">🔄</button>
+        <div class="sugg hidden" id="toSug"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-gps" id="gpsBtn2">📡</button>
+      <button class="btn-search" id="searchBtn">🔍 Route Dhundo</button>
+    </div>
+    <div class="tabs">
+      <div class="tab" id="tm"><span>🚇</span>Metro</div>
+      <div class="tab" id="tb"><span>🚌</span>Bus</div>
+      <div class="tab" id="ta"><span>🛺</span>Auto</div>
+      <div class="tab" id="tk"><span>🏍️</span>Bike</div>
+    </div>
+    <div class="info"><b>🆓 Bilkul Free</b> — OpenStreetMap + OSRM routing use ho raha hai. Share karo, hamesha kaam karega!</div>
+    <div id="results"><div class="empty"><div class="empty-i">🛣️</div>Location aur destination dalo<br>to route, kiraya aur metro/bus info dikhega!</div></div>
+    <div id="shareWrap" class="hidden"><button class="share-btn" id="shareBtn">📤 Is Route ko Share Karein</button></div>
+  </div>
+  <div class="status"><div class="sdot"></div><span id="statusTxt">Map load ho raha hai...</span></div>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.onload=function(){initApp();};
+  s.onerror=function(){
+    document.getElementById('statusTxt').textContent='❌ Internet nahi hai';
+    document.getElementById('map').innerHTML='<div class="map-err" style="display:flex"><span style="font-size:32px">❌</span>Map load nahi hua<br><small>Internet connect karein</small></div>';
+  };
+  document.head.appendChild(s);
+})();
+
+function initApp(){
+  var st=document.getElementById('statusTxt');
+  var mapWrap=document.getElementById('mapWrap');
+  var map=L.map('map',{zoomControl:false,attributionControl:false}).setView([28.6139,77.2090],11);
+  L.control.zoom({position:'topright'}).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'OSM'}).addTo(map);
+  var cs=document.createElement('style');
+  cs.textContent='.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) saturate(1.3)}.leaflet-container{background:#0a0f1e}';
+  document.head.appendChild(cs);
+  st.textContent='✅ Map ready – location enter karein';
+
+  var gIcon=L.divIcon({html:'<div style="background:#00ff9d;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 12px #00ff9d"></div>',iconSize:[16,16],className:''});
+  var rIcon=L.divIcon({html:'<div style="background:#ff6b35;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 12px #ff6b35"></div>',iconSize:[16,16],className:''});
+
+  var uM=null,dM=null,rL=null;
+  var fC=null,tC=null,selTab=null,curRoute=null;
+
+  function doGPS(){
+    st.textContent='📡 GPS se location le rahe hain...';
+    if(!navigator.geolocation){alert('GPS support nahi hai');return;}
+    navigator.geolocation.getCurrentPosition(function(p){
+      fC=[p.coords.latitude,p.coords.longitude];
+      revGeo(fC,function(n){document.getElementById('fromInput').value=n;st.textContent='✅ Location mili';});
+      if(uM)map.removeLayer(uM);
+      uM=L.marker(fC,{icon:gIcon}).addTo(map).bindPopup('📍 Aap yahan hain').openPopup();
+      map.setView(fC,14);
+    },function(){st.textContent='❌ GPS error – manually likhein';},{timeout:10000,enableHighAccuracy:true});
+  }
+
+  document.getElementById('gpsBtn').onclick=doGPS;
+  document.getElementById('gpsBtn2').onclick=doGPS;
+  document.getElementById('btnCenter').onclick=function(){if(fC)map.setView(fC,14);else doGPS();};
+  document.getElementById('btnFit').onclick=function(){if(rL)map.fitBounds(rL.getBounds(),{padding:[20,20]});};
+
+  function geo(q,cb){
+    fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+' India')+'&format=json&limit=5',{headers:{'Accept-Language':'hi,en'}})
+    .then(function(r){return r.json();}).then(cb).catch(function(){cb([]);});
+  }
+  function revGeo(c,cb){
+    fetch('https://nominatim.openstreetmap.org/reverse?lat='+c[0]+'&lon='+c[1]+'&format=json',{headers:{'Accept-Language':'hi,en'}})
+    .then(function(r){return r.json();}).then(function(d){cb(d.display_name?d.display_name.split(',').slice(0,2).join(', '):'My Location');}).catch(function(){cb('My Location');});
+  }
+
+  var timers={};
+  function setupAC(inId,sugId,isFrom){
+    var inp=document.getElementById(inId);
+    var sug=document.getElementById(sugId);
+    inp.addEventListener('input',function(){
+      clearTimeout(timers[inId]);
+      var v=inp.value.trim();
+      if(v.length<2){sug.classList.add('hidden');return;}
+      timers[inId]=setTimeout(function(){
+        geo(v,function(res){
+          if(!res||!res.length){sug.classList.add('hidden');return;}
+          sug.innerHTML='';
+          res.forEach(function(r){
+            var nm=r.display_name.split(',').slice(0,3).join(', ');
+            var d=document.createElement('div');
+            d.className='sugg-item';
+            d.innerHTML='<span>📍</span><span style="line-height:1.4">'+nm+'</span>';
+            d.addEventListener('click',function(e){
+              e.stopPropagation();inp.value=nm;sug.classList.add('hidden');
+              var lat=parseFloat(r.lat),lon=parseFloat(r.lon);
+              if(isFrom){fC=[lat,lon];if(uM)map.removeLayer(uM);uM=L.marker(fC,{icon:gIcon}).addTo(map);map.setView(fC,13);}
+              else{tC=[lat,lon];if(dM)map.removeLayer(dM);dM=L.marker(tC,{icon:rIcon}).addTo(map);}
+            });
+            sug.appendChild(d);
+          });
+          sug.classList.remove('hidden');
+        });
+      },450);
+    });
+    document.addEventListener('click',function(e){if(!sug.contains(e.target)&&e.target!==inp)sug.classList.add('hidden');});
+  }
+  setupAC('fromInput','fromSug',true);
+  setupAC('toInput','toSug',false);
+
+  document.getElementById('swapBtn').onclick=function(){
+    var fi=document.getElementById('fromInput'),ti=document.getElementById('toInput');
+    var tv=ti.value;ti.value=fi.value;fi.value=tv;
+    var tc=tC;tC=fC;fC=tc;
+  };
+
+  document.getElementById('tm').onclick=function(){setTab('metro');};
+  document.getElementById('tb').onclick=function(){setTab('bus');};
+  document.getElementById('ta').onclick=function(){setTab('auto');};
+  document.getElementById('tk').onclick=function(){setTab('bike');};
+
+  function setTab(t){
+    document.getElementById('tm').className='tab'+(t==='metro'?' am':'');
+    document.getElementById('tb').className='tab'+(t==='bus'?' ab':'');
+    document.getElementById('ta').className='tab'+(t==='auto'?' aa':'');
+    document.getElementById('tk').className='tab'+(t==='bike'?' ak':'');
+    selTab=t;
+    // Bike mode = big map
+    if(t==='bike'){mapWrap.classList.add('big');}else{mapWrap.classList.remove('big');}
+    setTimeout(function(){map.invalidateSize();},350);
+    if(fC&&tC)showResults(t);
+  }
+
+  document.getElementById('searchBtn').onclick=function(){
+    var fv=document.getElementById('fromInput').value.trim();
+    var tv=document.getElementById('toInput').value.trim();
+    if(!fv||!tv){alert('Dono jagah bharo pehle!');return;}
+    document.getElementById('results').innerHTML='<div class="loading"><div class="spin"></div>Route dhund rahe hain...</div>';
+    st.textContent='🔍 Route dhund rahe hain...';
+    function go(){
+      fetchRoute(fC,tC,function(){
+        showResults(selTab||'metro');
+        if(!selTab)setTab('metro');
+        st.textContent='✅ Route mil gaya!';
+        document.getElementById('shareWrap').classList.remove('hidden');
+      });
+    }
+    var pending=0;
+    if(!fC){pending++;geo(fv,function(r){if(r&&r.length){fC=[parseFloat(r[0].lat),parseFloat(r[0].lon)];if(uM)map.removeLayer(uM);uM=L.marker(fC,{icon:gIcon}).addTo(map);}pending--;if(pending===0)go();});}
+    if(!tC){pending++;geo(tv,function(r){if(r&&r.length){tC=[parseFloat(r[0].lat),parseFloat(r[0].lon)];if(dM)map.removeLayer(dM);dM=L.marker(tC,{icon:rIcon}).addTo(map);}pending--;if(pending===0)go();});}
+    if(pending===0)go();
+  };
+
+  function fetchRoute(f,t,cb){
+    var url='https://router.project-osrm.org/route/v1/driving/'+f[1]+','+f[0]+';'+t[1]+','+t[0]+'?overview=full&geometries=geojson';
+    fetch(url).then(function(r){return r.json();}).then(function(d){
+      if(d.code==='Ok'){
+        curRoute=d.routes[0];
+        if(rL)map.removeLayer(rL);
+        rL=L.geoJSON(curRoute.geometry,{style:{color:'#00e5ff',weight:5,opacity:.85}}).addTo(map);
+        map.fitBounds(rL.getBounds(),{padding:[30,30]});
+      }
+      cb();
+    }).catch(function(){cb();});
+  }
+
+  function fare(d,t){
+    if(t==='metro'){if(d<=2)return{lo:10,hi:10,n:'0-2 km'};if(d<=5)return{lo:20,hi:20,n:'2-5 km'};if(d<=12)return{lo:30,hi:30,n:'5-12 km'};if(d<=21)return{lo:40,hi:40,n:'12-21 km'};if(d<=32)return{lo:50,hi:50,n:'21-32 km'};return{lo:60,hi:60,n:'32+ km'};}
+    if(t==='bus'){var x=Math.round(10+d*1.5);return{lo:Math.max(10,x-5),hi:x+5,n:'DTC/City bus'};}
+    if(t==='bike'){var b=25;if(d>1.5)b+=Math.round((d-1.5)*8);return{lo:b,hi:Math.round(b*1.3),n:'Rapido/Uber Moto'};}
+    var f=30;if(d>1.5)f+=Math.round((d-1.5)*11);return{lo:f,hi:Math.round(f*1.25),n:'Day/Night fare'};
+  }
+  function timeMins(d,t){
+    if(t==='metro')return Math.round(d*2.5+10);
+    if(t==='bus')return Math.round(d*4+15);
+    if(t==='bike')return Math.round(d*2.2+3);
+    return Math.round(d*3+5);
+  }
+
+  var stepsTpl={
+    metro:['📍 Nearest metro station tak walk karein','🎫 Token ya Smart Card lein','🚇 Sahi line aur platform par jaayein','📢 Station announcements sunein','🚶 Destination station pe utarein','📍 Exit se destination tak walk karein'],
+    bus:['📍 Nearest bus stop par jaayein','📱 Bus number check karein','🚌 Sahi bus board karein','💳 Kiraya dein ya card tap','📢 Apna stop pe utarein','📍 Destination tak walk'],
+    auto:['🛺 Main road ya auto stand jaayein','💬 Driver ko destination batayein','🔢 Meter on karwayein','📱 Ya Ola/Rapido app se book','💰 Meter hisaab se pay','✅ Destination pahunch gaye!'],
+    bike:['📱 Rapido/Uber Moto/Ola Bike app kholein','📍 Pickup location confirm karein','🏍️ Rider aane ka wait karein','🪖 Helmet zaroor pehne','🛣️ Enjoy the ride!','✅ Destination pe utar jaayein']
+  };
+
+  function showResults(t){
+    if(!fC||!tC)return;
+    var d=curRoute?(curRoute.distance/1000):(function(){var R=6371,dl=(tC[0]-fC[0])*Math.PI/180,dn=(tC[1]-fC[1])*Math.PI/180;var x=Math.sin(dl/2)**2+Math.cos(fC[0]*Math.PI/180)*Math.cos(tC[0]*Math.PI/180)*Math.sin(dn/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));})();
+    var ds=d.toFixed(1);
+    var colors={metro:'#6366f1',bus:'#f59e0b',auto:'#10b981',bike:'#ec4899'};
+    if(rL)rL.setStyle({color:colors[t]||'#00e5ff'});
+
+    var html='<div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px;margin-bottom:10px">ROUTE OPTIONS ('+ds+' km)</div>';
+
+    if(t==='metro'){
+      if(d>1.5){
+        var lines=['Yellow Line','Blue Line','Red Line','Green Line','Pink Line','Violet Line'];
+        var line=lines[Math.floor(d*7)%lines.length];
+        html+=mkCard('🚇','Metro Route','bm',t,ds,d,'<div class="extra-box em">🚇 <b>'+line+'</b><br>⏱️ Frequency: har 3-5 min</div>');
+      } else {
+        html+='<div class="card" style="text-align:center;color:var(--muted);padding:16px">⚠️ Distance kam hai metro ke liye<br>Bus/Auto/Bike use karein 👇</div>';
+      }
+    } else if(t==='bus'){
+      html+=mkCard('🚌','Bus Route','bb',t,ds,d,'<div class="extra-box eb">🚌 Bus stop se board karein<br>💳 Smart card ya cash rakhein</div>');
+    } else if(t==='bike'){
+      html+=mkCard('🏍️','Bike Taxi','bk',t,ds,d,'<div class="extra-box ek">🏍️ <b>Rapido / Uber Moto / Ola Bike</b><br>🪖 Helmet mandatory hai<br>⚡ Sabse fast option traffic mein<br>💨 Avg speed: 25-35 km/h</div>');
+    } else {
+      html+=mkCard('🛺','Auto Rickshaw','ba',t,ds,d,'<div class="extra-box ea">🛺 Road se ya app se lo<br>🌙 Raat 11 ke baad 25% extra</div>');
+    }
+    document.getElementById('results').innerHTML=html;
+    document.querySelectorAll('[data-sid]').forEach(function(btn){
+      btn.onclick=function(){var sid=btn.dataset.sid;var el=document.getElementById(sid);var h=el.classList.toggle('hidden');btn.querySelector('.arr').textContent=h?'▼':'▲';};
+    });
+  }
+
+  function mkCard(ico,lbl,badge,type,ds,d,extra){
+    var f=fare(d,type);var tm=timeMins(d,type);
+    var sid='sid_'+type+'_'+Math.floor(Math.random()*9999);
+    var steps=stepsTpl[type]||[];
+    return '<div class="card"><div class="card-head"><div class="card-title">'+ico+' '+lbl+'</div><span class="badge '+badge+'">'+lbl.split(' ')[0]+'</span></div><div class="meta"><span>📍 <b>'+ds+' km</b></span><span>⏱️ <b>~'+tm+' min</b></span></div><div class="fare-box"><div><div class="fare-lbl">💰 Kiraya (approx)</div><div class="fare-note">'+f.n+'</div></div><div class="fare-val">₹'+f.lo+(f.lo!==f.hi?' – ₹'+f.hi:'')+'</div></div>'+extra+'<div class="steps-btn" data-sid="'+sid+'">📋 Step-by-step directions <span class="arr">▼</span></div><div class="steps hidden" id="'+sid+'">'+steps.map(function(s,i){return'<div class="step"><div class="sn">'+(i+1)+'</div><div>'+s+'</div></div>';}).join('')+'</div></div>';
+  }
+
+  document.getElementById('shareBtn').onclick=function(){
+    var fv=document.getElementById('fromInput').value;
+    var tv=document.getElementById('toInput').value;
+    var txt='🗺️ RaahDekho Route\n📍 From: '+fv+'\n🔴 To: '+tv+'\n\nFree navigation app by Raj!';
+    if(navigator.share)navigator.share({title:'RaahDekho',text:txt});
+    else if(navigator.clipboard)navigator.clipboard.writeText(txt).then(function(){alert('Copy ho gaya! 📋');});
+  };
+
+  document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement.className.indexOf('loc-input')>=0)document.getElementById('searchBtn').click();});
+}
+</script>
+</body>
+</html>
