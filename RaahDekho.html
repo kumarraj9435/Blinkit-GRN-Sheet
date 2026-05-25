@@ -290,7 +290,8 @@ function showResults(t){
     else{html+='<div class="card" style="text-align:center;color:var(--muted)">⚠️ Bahut kam distance – Auto/Bike use karo</div>';}
   } else if(t==='bus'){
     html+=mkCard('🚌','Bus','bb',t,ds,d,'<div class="extra-box eb">🚌 Bus stop se board<br>💳 Smart card/cash</div>','');
-    html+='<div id="busInfo" class="card" style="margin-top:10px"><div class="loading"><div class="spin"></div>Bus routes dhund rahe hain...</div></div>';
+    html+='<div id="busInfo" class="card" style="margin-top:10px"><div class="loading"><div class="spin"></div>Bus stops dhund rahe hain...</div></div>';
+    html+='<div style="margin-top:10px"><a href="https://www.google.com/maps/dir/?api=1&origin='+fC[0]+','+fC[1]+'&destination='+tC[0]+','+tC[1]+'&travelmode=transit&transit_mode=bus" target="_blank" style="display:block;text-align:center;padding:13px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:12px;color:#000;font-weight:800;font-size:14px;text-decoration:none;font-family:inherit">🚌 Google Maps mein Bus No. & Timing Dekho →</a><p style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px">Exact DTC/Cluster bus number, timing, kahan se leni hai - sab milega</p></div>';
     fetchBusRoutes(fC,tC);
   } else if(t==='bike'){
     var fl=fuelCalc(d,'bike');
@@ -381,14 +382,18 @@ function haversine(a,b){var R=6371,dl=(b[0]-a[0])*Math.PI/180,dn=(b[1]-a[1])*Mat
 
 // ========== BUS ROUTES FINDER ==========
 function fetchBusRoutes(from,to){
-  var fromQ='[out:json][timeout:15];(node["highway"="bus_stop"](around:800,'+from[0]+','+from[1]+');node["public_transport"="platform"]["bus"="yes"](around:800,'+from[0]+','+from[1]+'););out body;';
-  var toQ='[out:json][timeout:15];(node["highway"="bus_stop"](around:800,'+to[0]+','+to[1]+');node["public_transport"="platform"]["bus"="yes"](around:800,'+to[0]+','+to[1]+'););out body;';
+  var fromQ='[out:json][timeout:6];(node["highway"="bus_stop"](around:500,'+from[0]+','+from[1]+');node["public_transport"="platform"]["bus"="yes"](around:500,'+from[0]+','+from[1]+'););out body;';
+  var toQ='[out:json][timeout:6];(node["highway"="bus_stop"](around:500,'+to[0]+','+to[1]+');node["public_transport"="platform"]["bus"="yes"](around:500,'+to[0]+','+to[1]+'););out body;';
   var busDiv=document.getElementById('busInfo');
+  var timeout=setTimeout(function(){
+    if(busDiv)busDiv.innerHTML='<div style="text-align:center;color:var(--muted);padding:12px;font-size:12px">⏱️ Data load nahi hua<br><b style="color:var(--bus)">Upar Google Maps button use karo - exact bus no. milega!</b></div>';
+  },6000);
   
   Promise.all([
     fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(fromQ)}).then(function(r){return r.json();}),
     fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(toQ)}).then(function(r){return r.json();})
   ]).then(function(results){
+    clearTimeout(timeout);
     var fromStops=results[0].elements||[];
     var toStops=results[1].elements||[];
     
@@ -463,7 +468,8 @@ function fetchBusRoutes(from,to){
     
     busDiv.innerHTML=html;
   }).catch(function(e){
-    busDiv.innerHTML='<div style="text-align:center;color:var(--muted);padding:12px;font-size:12px">⚠️ Bus data load nahi hua<br><small>Internet check karein ya thodi der baad try karein</small></div>';
+    clearTimeout(timeout);
+    busDiv.innerHTML='<div style="text-align:center;color:var(--muted);padding:12px;font-size:12px">ℹ️ Nearby stops load nahi hue<br><b style="color:var(--bus)">Upar Google Maps button se exact bus info lo!</b></div>';
   });
 }
 
