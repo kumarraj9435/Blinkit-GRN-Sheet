@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Stock Manager by Raj</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--accent:#06b6d4;--green:#10b981;--red:#ef4444;--orange:#f59e0b;--purple:#8b5cf6;--text:#f1f5f9;--muted:#94a3b8;--border:#475569}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{max-width:500px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+header{background:linear-gradient(135deg,#0f172a,#1e1b4b);padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+header h1{font-size:18px;font-weight:800}
+header h1 span{color:var(--accent)}
+header small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+
+.content{flex:1;padding:12px;overflow-y:auto;padding-bottom:80px}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100}
+.nav-btn{flex:1;padding:10px 4px;text-align:center;cursor:pointer;transition:all .2s;border:none;background:none;color:var(--muted);font-size:10px;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-btn i{font-size:18px}
+.nav-btn.active{color:var(--accent);background:rgba(6,182,212,.1)}
+
+/* Tabs */
+.tab{display:none}.tab.active{display:block;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Dashboard */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border)}
+.stat-card h3{font-size:22px;margin-bottom:2px}
+.stat-card p{font-size:11px;color:var(--muted)}
+.stat-card.green h3{color:var(--green)}.stat-card.red h3{color:var(--red)}.stat-card.orange h3{color:var(--orange)}.stat-card.purple h3{color:var(--purple)}
+
+.section-title{font-size:13px;font-weight:700;color:var(--muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px}
+
+/* Stock Items */
+.stock-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.stock-img{width:56px;height:56px;border-radius:8px;object-fit:cover;background:var(--card2);flex-shrink:0}
+.stock-info{flex:1;min-width:0}
+.stock-info h4{font-size:14px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stock-info p{font-size:11px;color:var(--muted)}
+.stock-qty{text-align:right}
+.stock-qty h3{font-size:18px;color:var(--green)}
+.stock-qty small{font-size:10px;color:var(--muted)}
+.stock-actions{display:flex;gap:6px;margin-top:6px}
+.stock-actions button{padding:5px 10px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer}
+.btn-out{background:var(--red);color:#fff}
+.btn-edit{background:var(--card2);color:var(--text);border:1px solid var(--border)!important}
+
+/* Add Stock Form */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.form-group input,.form-group select{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit}
+.form-group input:focus{outline:none;border-color:var(--accent)}
+
+.photo-box{width:100%;height:160px;border:2px dashed var(--border);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;background:var(--bg)}
+.photo-box img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+.photo-box i{font-size:32px;color:var(--muted)}
+.photo-box p{font-size:12px;color:var(--muted);margin-top:6px}
+#photoInput{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer}
+
+.btn-submit{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0891b2);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn-submit:active{opacity:.8}
+
+/* Orders */
+.order-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.order-head h4{font-size:13px}
+.order-status{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700}
+.status-pending{background:#92400e;color:#fcd34d}
+.status-done{background:#065f46;color:#6ee7b7}
+.order-items{font-size:11px;color:var(--muted);line-height:1.6}
+
+/* Stock Out Modal */
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-content{background:var(--card);border-radius:14px;padding:20px;width:100%;max-width:360px}
+.modal-content h3{margin-bottom:14px;font-size:16px}
+.modal-close{float:right;background:var(--red);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:700}
+
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
+.empty i{font-size:40px;margin-bottom:10px;display:block}
+
+/* Search */
+.search-box{margin-bottom:12px}
+.search-box input{width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">📦</div>
+  <div><h1>Stock<span>Manager</span></h1><small>by Raj • Photo Stock Tracking</small></div>
+</header>
+
+<div class="content">
+  <!-- Dashboard Tab -->
+  <div class="tab active" id="tabDash">
+    <div class="stats">
+      <div class="stat-card green"><h3 id="sTotalItems">0</h3><p>Total Items</p></div>
+      <div class="stat-card orange"><h3 id="sTotalQty">0</h3><p>Total Stock</p></div>
+      <div class="stat-card red"><h3 id="sLowStock">0</h3><p>Low Stock (&lt;5)</p></div>
+      <div class="stat-card purple"><h3 id="sTotalOrders">0</h3><p>Total Orders</p></div>
+    </div>
+    <div class="section-title">Recent Stock</div>
+    <div id="dashStock"></div>
+  </div>
+
+  <!-- Stock In Tab -->
+  <div class="tab" id="tabAdd">
+    <div class="form-card">
+      <h3 style="margin-bottom:14px;font-size:16px">📷 Naya Stock Add Karo</h3>
+      <div class="form-group">
+        <label>Photo (Camera ya Gallery)</label>
+        <div class="photo-box" id="photoBox">
+          <i class="fas fa-camera"></i>
+          <p>Tap to capture / select photo</p>
+          <input type="file" id="photoInput" accept="image/*" capture="environment">
+          <img id="photoPreview" style="display:none">
+        </div>
+      </div>
+      <div class="form-group"><label>Product Name</label><input type="text" id="inName" placeholder="e.g. Maggi, Dettol..."></div>
+      <div class="form-group"><label>Category</label><input type="text" id="inCat" placeholder="e.g. Food, FMCG, Electronics..."></div>
+      <div class="form-group"><label>Quantity (Stock In)</label><input type="number" id="inQty" placeholder="e.g. 100" min="1"></div>
+      <div class="form-group"><label>Price per unit (₹)</label><input type="number" id="inPrice" placeholder="e.g. 25" min="0"></div>
+      <button class="btn-submit" onclick="addStock()"><i class="fas fa-plus"></i> Stock Add Karo</button>
+    </div>
+  </div>
+
+  <!-- All Stock Tab -->
+  <div class="tab" id="tabStock">
+    <div class="search-box"><input type="text" id="searchStock" placeholder="🔍 Search stock..." oninput="renderStock()"></div>
+    <div id="stockList"></div>
+  </div>
+
+  <!-- Orders Tab -->
+  <div class="tab" id="tabOrders">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="section-title" style="margin:0">Orders</div>
+      <button onclick="showNewOrder()" style="padding:8px 14px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:12px;cursor:pointer"><i class="fas fa-plus"></i> New Order</button>
+    </div>
+    <div id="orderList"></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="tabDash"><i class="fas fa-chart-pie"></i>Dashboard</button>
+  <button class="nav-btn" data-tab="tabAdd"><i class="fas fa-camera"></i>Stock In</button>
+  <button class="nav-btn" data-tab="tabStock"><i class="fas fa-boxes-stacked"></i>All Stock</button>
+  <button class="nav-btn" data-tab="tabOrders"><i class="fas fa-receipt"></i>Orders</button>
+</nav>
+
+<!-- Stock Out Modal -->
+<div class="modal" id="outModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>📤 Stock Out</h3>
+    <div class="form-group"><label>Item: <b id="outItemName"></b></label></div>
+    <div class="form-group"><label>Available: <b id="outItemQty"></b></label></div>
+    <div class="form-group"><label>Kitna nikalna hai?</label><input type="number" id="outQty" min="1" placeholder="Qty"></div>
+    <div class="form-group"><label>Reason</label><input type="text" id="outReason" placeholder="e.g. Sold, Damaged, Order #123"></div>
+    <button class="btn-submit" onclick="doStockOut()" style="background:var(--red)">📤 Stock Out Karo</button>
+  </div>
+</div>
+
+<!-- New Order Modal -->
+<div class="modal" id="orderModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    <h3>🛒 New Order</h3>
+    <div class="form-group"><label>Customer Name</label><input type="text" id="ordCust" placeholder="Customer ka naam"></div>
+    <div class="form-group"><label>Select Item</label><select id="ordItem"></select></div>
+    <div class="form-group"><label>Quantity</label><input type="number" id="ordQty" min="1" placeholder="Kitna?"></div>
+    <button class="btn-submit" onclick="createOrder()" style="background:var(--purple)">🛒 Order Create Karo</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ========== DATA ==========
+var stock = JSON.parse(localStorage.getItem('sm_stock') || '[]');
+var orders = JSON.parse(localStorage.getItem('sm_orders') || '[]');
+var currentPhoto = '';
+var outIdx = -1;
+
+// ========== NAV ==========
+document.querySelectorAll('.nav-btn').forEach(function(btn){
+  btn.onclick = function(){
+    document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='tabDash')renderDash();
+    if(btn.dataset.tab==='tabStock')renderStock();
+    if(btn.dataset.tab==='tabOrders')renderOrders();
+  };
+});
+
+// ========== PHOTO ==========
+document.getElementById('photoInput').onchange = function(e){
+  var file = e.target.files[0];
+  if(!file)return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    currentPhoto = ev.target.result;
+    var img = document.getElementById('photoPreview');
+    img.src = currentPhoto;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+};
+
+// ========== ADD STOCK ==========
+function addStock(){
+  var name = document.getElementById('inName').value.trim();
+  var cat = document.getElementById('inCat').value.trim();
+  var qty = parseInt(document.getElementById('inQty').value) || 0;
+  var price = parseFloat(document.getElementById('inPrice').value) || 0;
+  if(!name){alert('Product name daalo!');return;}
+  if(!qty){alert('Quantity daalo!');return;}
+  
+  // Check if item exists
+  var found = -1;
+  for(var i=0;i<stock.length;i++){
+    if(stock[i].name.toLowerCase() === name.toLowerCase()){found=i;break;}
+  }
+  
+  if(found >= 0){
+    stock[found].qty += qty;
+    stock[found].lastUpdate = new Date().toISOString();
+    if(currentPhoto) stock[found].photo = currentPhoto;
+    if(price) stock[found].price = price;
+  } else {
+    stock.push({
+      id: Date.now(),
+      name: name,
+      category: cat || 'General',
+      qty: qty,
+      price: price,
+      photo: currentPhoto || '',
+      addedDate: new Date().toISOString(),
+      lastUpdate: new Date().toISOString(),
+      history: [{type:'in',qty:qty,date:new Date().toISOString(),reason:'Initial stock'}]
+    });
+  }
+  
+  saveData();
+  alert('✅ Stock added: ' + name + ' (Qty: ' + qty + ')');
+  
+  // Reset form
+  document.getElementById('inName').value='';
+  document.getElementById('inCat').value='';
+  document.getElementById('inQty').value='';
+  document.getElementById('inPrice').value='';
+  document.getElementById('photoPreview').style.display='none';
+  currentPhoto='';
+}
+
+// ========== STOCK OUT ==========
+function showStockOut(idx){
+  outIdx = idx;
+  document.getElementById('outItemName').textContent = stock[idx].name;
+  document.getElementById('outItemQty').textContent = stock[idx].qty;
+  document.getElementById('outQty').value = '';
+  document.getElementById('outReason').value = '';
+  document.getElementById('outModal').classList.add('show');
+}
+function closeModal(){document.getElementById('outModal').classList.remove('show');}
+
+function doStockOut(){
+  var qty = parseInt(document.getElementById('outQty').value) || 0;
+  var reason = document.getElementById('outReason').value.trim() || 'Stock out';
+  if(!qty || qty <= 0){alert('Qty daalo!');return;}
+  if(qty > stock[outIdx].qty){alert('Itna stock nahi hai! Available: ' + stock[outIdx].qty);return;}
+  
+  stock[outIdx].qty -= qty;
+  stock[outIdx].lastUpdate = new Date().toISOString();
+  if(!stock[outIdx].history) stock[outIdx].history = [];
+  stock[outIdx].history.push({type:'out',qty:qty,date:new Date().toISOString(),reason:reason});
+  
+  saveData();
+  closeModal();
+  alert('📤 Stock Out: ' + stock[outIdx].name + ' (-' + qty + ')');
+  renderStock();
+  renderDash();
+}
+
+// ========== ORDERS ==========
+function showNewOrder(){
+  var sel = document.getElementById('ordItem');
+  sel.innerHTML = '';
+  for(var i=0;i<stock.length;i++){
+    sel.innerHTML += '<option value="'+i+'">'+stock[i].name+' (Available: '+stock[i].qty+')</option>';
+  }
+  document.getElementById('ordCust').value = '';
+  document.getElementById('ordQty').value = '';
+  document.getElementById('orderModal').classList.add('show');
+}
+function closeOrderModal(){document.getElementById('orderModal').classList.remove('show');}
+
+function createOrder(){
+  var cust = document.getElementById('ordCust').value.trim();
+  var itemIdx = parseInt(document.getElementById('ordItem').value);
+  var qty = parseInt(document.getElementById('ordQty').value) || 0;
+  if(!cust){alert('Customer name daalo!');return;}
+  if(!qty){alert('Qty daalo!');return;}
+  if(qty > stock[itemIdx].qty){alert('Stock nahi hai! Available: '+stock[itemIdx].qty);return;}
+  
+  // Stock out
+  stock[itemIdx].qty -= qty;
+  stock[itemIdx].lastUpdate = new Date().toISOString();
+  if(!stock[itemIdx].history) stock[itemIdx].history = [];
+  stock[itemIdx].history.push({type:'out',qty:qty,date:new Date().toISOString(),reason:'Order - '+cust});
+  
+  // Create order
+  orders.push({
+    id: Date.now(),
+    customer: cust,
+    item: stock[itemIdx].name,
+    qty: qty,
+    total: qty * (stock[itemIdx].price || 0),
+    date: new Date().toISOString(),
+    status: 'pending'
+  });
+  
+  saveData();
+  closeOrderModal();
+  alert('🛒 Order created for ' + cust);
+  renderOrders();
+  renderDash();
+}
+
+function markDone(idx){
+  orders[idx].status = 'done';
+  saveData();
+  renderOrders();
+}
+
+// ========== RENDER ==========
+function renderDash(){
+  var totalQty = 0, low = 0;
+  for(var i=0;i<stock.length;i++){totalQty+=stock[i].qty;if(stock[i].qty<5)low++;}
+  document.getElementById('sTotalItems').textContent = stock.length;
+  document.getElementById('sTotalQty').textContent = totalQty;
+  document.getElementById('sLowStock').textContent = low;
+  document.getElementById('sTotalOrders').textContent = orders.length;
+  
+  var html = '';
+  var recent = stock.slice(-5).reverse();
+  if(recent.length === 0){html = '<div class="empty"><i class="fas fa-box-open"></i>Koi stock nahi hai abhi<br>Stock In tab se add karo!</div>';}
+  else{
+    for(var j=0;j<recent.length;j++){
+      var s = recent[j];
+      html += '<div class="stock-item"><img class="stock-img" src="'+(s.photo||'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22><rect fill=%22%23334155%22 width=%2256%22 height=%2256%22/><text x=%2228%22 y=%2234%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2220%22>📦</text></svg>')+'"><div class="stock-info"><h4>'+s.name+'</h4><p>'+s.category+' • ₹'+(s.price||0)+'/unit</p></div><div class="stock-qty"><h3>'+s.qty+'</h3><small>qty</small></div></div>';
+    }
+  }
+  document.getElementById('dashStock').innerHTML = html;
+}
+
+function renderStock(){
+  var search = (document.getElementById('searchStock').value||'').toLowerCase();
+  var filtered = stock.filter(function(s){return !search || s.name.toLowerCase().indexOf(search)>=0 || s.category.toLowerCase().indexOf(search)>=0;});
+  var html = '';
+  if(filtered.length === 0){html = '<div class="empty"><i class="fas fa-search"></i>Koi stock nahi mila</div>';}
+  else{
+    for(var i=0;i<filtered.length;i++){
+      var s = filtered[i];
+      var realIdx = stock.indexOf(s);
+      var qtyColor = s.qty < 5 ? 'color:var(--red)' : 'color:var(--green)';
+      html += '<div class="stock-item"><img class="stock-img" src="'+(s.photo||'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22><rect fill=%22%23334155%22 width=%2256%22 height=%2256%22/><text x=%2228%22 y=%2234%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2220%22>📦</text></svg>')+'"><div class="stock-info"><h4>'+s.name+'</h4><p>'+s.category+' • ₹'+(s.price||0)+'/unit</p><div class="stock-actions"><button class="btn-out" onclick="showStockOut('+realIdx+')">📤 Out</button><button class="btn-edit" onclick="deleteItem('+realIdx+')">🗑️</button></div></div><div class="stock-qty"><h3 style="'+qtyColor+'">'+s.qty+'</h3><small>qty</small></div></div>';
+    }
+  }
+  document.getElementById('stockList').innerHTML = html;
+}
+
+function renderOrders(){
+  var html = '';
+  if(orders.length === 0){html = '<div class="empty"><i class="fas fa-receipt"></i>Koi order nahi hai<br>New Order button se add karo!</div>';}
+  else{
+    var rev = orders.slice().reverse();
+    for(var i=0;i<rev.length;i++){
+      var o = rev[i];
+      var realIdx = orders.indexOf(o);
+      var stClass = o.status==='done'?'status-done':'status-pending';
+      var stText = o.status==='done'?'Delivered':'Pending';
+      html += '<div class="order-item"><div class="order-head"><h4>🛒 '+o.customer+'</h4><span class="order-status '+stClass+'">'+stText+'</span></div><div class="order-items">📦 '+o.item+' × '+o.qty+(o.total?' = ₹'+o.total:'')+'<br>📅 '+new Date(o.date).toLocaleDateString()+'</div>'+(o.status!=='done'?'<button onclick="markDone('+realIdx+')" style="margin-top:8px;padding:6px 12px;background:var(--green);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer">✅ Mark Delivered</button>':'')+'</div>';
+    }
+  }
+  document.getElementById('orderList').innerHTML = html;
+}
+
+function deleteItem(idx){
+  if(confirm('Delete "'+stock[idx].name+'"?')){
+    stock.splice(idx,1);
+    saveData();
+    renderStock();
+    renderDash();
+  }
+}
+
+// ========== SAVE ==========
+function saveData(){
+  localStorage.setItem('sm_stock',JSON.stringify(stock));
+  localStorage.setItem('sm_orders',JSON.stringify(orders));
+}
+
+// ========== INIT ==========
+renderDash();
+</script>
+</body>
+</html>
